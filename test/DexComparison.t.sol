@@ -25,7 +25,8 @@ contract DexComparisonTest is Test {
     uint256 constant SWAP_AMOUNT = 1 ether;
     
     // Replace these with your actual router addresses
-    address constant ROUTER1_ADDRESS = address(0x4d7Db7ccbDDE2420260679e2e547e4Fab8E9DF84); // modified router
+    //address constant ROUTER1_ADDRESS = address(0x4d7Db7ccbDDE2420260679e2e547e4Fab8E9DF84); // modified router fuji
+    address constant ROUTER1_ADDRESS = address(0x37039eF0514fdFb612fFF0D65f6767CB90335D9b); //modified router avax
 // 0x6401989498310c63ed7068174c99bad5d81E1a17
     address public factory1_address;
     //0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901 -> fuji router
