@@ -9,3 +9,11 @@ This means liquidity providers wont get any fees. We acknowledge and accept the 
 
 
 The only modification is to the JoePair contract under `src/libraries/JoePair.sol` where the fees are sent instead of being left in the contract. The original can also be found under  `src/libraries/JoePairOriginal.sol` for ease of comparison.
+
+Deployment : 
+```
+forge script DexDeployScript  --rpc-url avalanche  -vvvvv --etherscan-api-key avalanche --private-key XX  --broadcast --verify
+````
+
+Avalanche deployments:
+* Router : 0x37039eF0514fdFb612fFF0D65f6767CB90335D9b
