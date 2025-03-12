@@ -30,7 +30,7 @@ library JoeLibrary {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"893762af68829e069f696f7d4d9cbcb2966cc9e9481a15c2e6d2be9a7297090f" // init code avax
+                        hex"5eae27f407e5d417db3b2c176a2221883934aa8eecf365f8795afb69ee0b23d1" // init code avax
                     )
                 )
             )

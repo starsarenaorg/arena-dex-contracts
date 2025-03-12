@@ -219,8 +219,13 @@ contract JoePair is JoeERC20 {
         {
         // Calculate and transfer fees
         uint256 fee0 = amount0In.mul(3) / 1000;  // 0.3% fee
+        if(fee0 > 0) {
+            fee0 -= 1; // mitigate rounding errors
+        }
         uint256 fee1 = amount1In.mul(3) / 1000;  // 0.3% fee
-        
+        if(fee1 > 0) {
+            fee1 -= 1; // mitigate rounding errors
+        }
         if (fee0 > 0) {
             _safeTransfer(token0, IJoeFactoryFeeReceiver(factory).feeReceiverAddress(), fee0);
             balance0 = balance0.sub(fee0);

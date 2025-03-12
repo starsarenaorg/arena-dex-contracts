@@ -16,4 +16,8 @@ forge script DexDeployScript  --rpc-url avalanche  -vvvvv --etherscan-api-key av
 ````
 
 Avalanche deployments:
-* Router : 0x37039eF0514fdFb612fFF0D65f6767CB90335D9b
+
+
+* JoeFactory deployed at: 0x231DF4D421f1F9e0AAe9bA3634a87EBC87A09c39
+* Bytecode  0x5eae27f407e5d417db3b2c176a2221883934aa8eecf365f8795afb69ee0b23d1
+* JoeRouter02 deployed at: 0x3a6F16E3639e83a085812288D16DE9883E649D1D
