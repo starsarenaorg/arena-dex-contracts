@@ -10,7 +10,6 @@ import {IJoePair} from "../src/interfaces/IJoePair.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-
 contract DexComparisonTest is Test { 
     MockERC20 public mockToken;
     IJoeRouter02 public router1;
@@ -23,10 +22,10 @@ contract DexComparisonTest is Test {
     uint256 constant INITIAL_AMOUNT = 1000 ether;
     uint256 constant LP_AMOUNT = 100 ether;
     uint256 constant SWAP_AMOUNT = 1 ether;
-    
+    address public feeToSetter;
     // Replace these with your actual router addresses
     //address constant ROUTER1_ADDRESS = address(0x4d7Db7ccbDDE2420260679e2e547e4Fab8E9DF84); // modified router fuji
-    address constant ROUTER1_ADDRESS = address(0x37039eF0514fdFb612fFF0D65f6767CB90335D9b); //modified router avax
+    address constant ROUTER1_ADDRESS = address(0x29684de154D438C7e961ceB86098c9324C1A6475); //modified router avax
 // 0x6401989498310c63ed7068174c99bad5d81E1a17
     address public factory1_address;
     //0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901 -> fuji router
@@ -56,9 +55,12 @@ contract DexComparisonTest is Test {
         // Give users some AVAX
         vm.deal(user1, 100 ether);
         vm.deal(user2, 100 ether);
+        feeToSetter = IJoeFactory(factory1_address).feeToSetter();
+        vm.prank(feeToSetter);
+        IJoeFactory(factory1_address).setProtocolFeeInfo(feeReceiver, 33);
         //addLiquidity(address(router1), user1);
         //addLiquidity(address(router2), user1);
-    }
+    }   
 
     function addLiquidity(address _router, address _user) internal {
         vm.startPrank(_user);
@@ -147,6 +149,74 @@ contract DexComparisonTest is Test {
 
     }
 
+    function testBuySellFuzzWithFees(uint256 _avaxAmount, uint256 _tokenAmount) public {
+        vm.prank(feeToSetter);
+        address receiver = makeAddr("receiver");
+        uint256 feePercentage = vm.randomUint(1, 100);
+        IJoeFactory(factory1_address).setProtocolFeeInfo(receiver, feePercentage);
+        uint256 totalAvaxVolume = 0;
+        uint256 totalTokenVolume = 0;
+        _avaxAmount = vm.randomUint(100 ether, 1000 ether);
+        _tokenAmount = vm.randomUint(1 ether, 10000 ether);
+        address _router = address(router1);
+        for (uint256 index = 0; index < 10; index++) {
+            fundUserWithTokensAndAvax(user1,_avaxAmount,_tokenAmount);
+            addLiquidity(_router,user1,_avaxAmount,_tokenAmount);
+            uint256 avaxAmountToSpend = getAvaxAmountForBuy();
+            fundUserWithTokensAndAvax(user1,avaxAmountToSpend,0);
+            _buyTokensFromLp(avaxAmountToSpend, user1, _router);
+            totalAvaxVolume += avaxAmountToSpend;
+            uint256 tokenAmountToSell = getTokenAmountForSell();
+            fundUserWithTokensAndAvax(user1,0,tokenAmountToSell);
+            _sellTokensToLp(tokenAmountToSell, user1, _router);
+            totalTokenVolume += tokenAmountToSell;
+        }
+        uint256 expectedAvaxFee = (totalAvaxVolume * 3 /1000 - 10) * feePercentage / 100;   
+        uint256 expectedTokenFee = (totalTokenVolume * 3 /1000 - 10) * feePercentage / 100;
+        uint256 actualAvaxFee = IERC20(WAVAX).balanceOf(receiver);
+        uint256 actualTokenFee = mockToken.balanceOf(receiver);
+        assertGt(expectedAvaxFee, actualAvaxFee);
+        assertGt(expectedTokenFee, actualTokenFee);
+        assertApproxEqAbs(expectedAvaxFee, actualAvaxFee, 20);
+        assertApproxEqAbs(expectedTokenFee, actualTokenFee, 20);
+
+    }
+
+    
+
+    function testSimpleBuy() public {
+        vm.prank(feeToSetter);
+        address receiver = makeAddr("receiver");
+        IJoeFactory(factory1_address).setProtocolFeeInfo(receiver, 100);
+        address _router = address(router1);
+        address _user = user1;
+        uint256 _avaxAmount = 100 ether;
+        uint256 _tokenAmount = 1200000 ether;
+        fundUserWithTokensAndAvax(_user,_avaxAmount,_tokenAmount);
+        addLiquidity(_router, _user, _avaxAmount, _tokenAmount);
+        vm.deal(_user, 5500 ether);
+        _buyTokensFromLp(200 ether, user1, _router);
+        console.log("receiver WAVAX balance", IERC20(WAVAX).balanceOf(receiver));
+        console.log("receiver token balance", mockToken.balanceOf(receiver));
+    }
+
+    function testSimpleSell() public {
+        vm.prank(feeToSetter);
+        address receiver = makeAddr("receiver");
+        IJoeFactory(factory1_address).setProtocolFeeInfo(receiver, 27);
+        address _router = address(router1);
+        address _user = user1;
+        uint256 _avaxAmount = 100 ether;
+        uint256 _tokenAmount = 1200000 ether;
+        fundUserWithTokensAndAvax(_user,_avaxAmount,_tokenAmount + 2000 ether);
+        addLiquidity(_router, _user, _avaxAmount, _tokenAmount);
+        vm.deal(_user, 5500 ether);
+        _sellTokensToLp(2000 ether, user1, _router);
+        console.log("receiver WAVAX balance", IERC20(WAVAX).balanceOf(receiver));
+        console.log("receiver token balance", mockToken.balanceOf(receiver));
+    }
+
+    
     function _buyTokensFromLp(uint256 _avaxAmount, address _user, address _router) internal {
         address[] memory path = new address[](2);
         path[0] = WAVAX;
