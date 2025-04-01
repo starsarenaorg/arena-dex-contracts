@@ -9,7 +9,12 @@ contract JoeFactory is IJoeFactory {
     address public override feeTo;
     address public override feeToSetter;
     address public override migrator;
-    address public feeReceiverAddress;
+    ProtocolFeeInfo public protocolFeeInfo;
+
+    struct ProtocolFeeInfo {
+        address protocolFeeReceiverAddress;
+        uint256 protocolFeePercentage;
+    }
 
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
@@ -50,10 +55,19 @@ contract JoeFactory is IJoeFactory {
         feeTo = _feeTo;
     }
 
-    function setFeeReceiverAddress(address _feeReceiverAddress) external {
+    function setProtocolFeeInfo(address _feeReceiverAddress, uint256 _feePercentage) external override {
+        require(_feePercentage <= 100, "Joe: INVALID_FEE_BASIS_POINTS");
         require(msg.sender == feeToSetter, "Joe: FORBIDDEN");
-        feeReceiverAddress = _feeReceiverAddress;
+        protocolFeeInfo = ProtocolFeeInfo({
+            protocolFeeReceiverAddress: _feeReceiverAddress,
+            protocolFeePercentage: _feePercentage
+        });
     }
+
+    function getProtocolFeeInfo() external view override returns (address, uint256) {
+        return (protocolFeeInfo.protocolFeeReceiverAddress, protocolFeeInfo.protocolFeePercentage);
+    }
+
 
     function setMigrator(address _migrator) external override {
         require(msg.sender == feeToSetter, "Joe: FORBIDDEN");

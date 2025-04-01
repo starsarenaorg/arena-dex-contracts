@@ -24,4 +24,8 @@ interface IJoeFactory {
     function setFeeToSetter(address) external;
 
     function setMigrator(address) external;
+
+    function getProtocolFeeInfo() external view returns (address, uint256);
+
+    function setProtocolFeeInfo(address, uint256) external;
 }

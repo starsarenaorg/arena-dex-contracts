@@ -9,9 +9,6 @@ import "./interfaces/IERC20.sol";
 import "./interfaces/IJoeFactory.sol";
 import "./interfaces/IJoeCallee.sol";
 
-interface IJoeFactoryFeeReceiver {
-    function feeReceiverAddress() external view returns (address);
-}
 
 interface IMigrator {
     // Return the desired amount of liquidity token that the migrator wants.
@@ -217,22 +214,26 @@ contract JoePair is JoeERC20 {
         uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, "Joe: INSUFFICIENT_INPUT_AMOUNT");
         {
+
+        (address feeReceiverAddress, uint256 feePercentage) = IJoeFactory(factory).getProtocolFeeInfo();
         // Calculate and transfer fees
-        uint256 fee0 = amount0In.mul(3) / 1000;  // 0.3% fee
-        if(fee0 > 0) {
-            fee0 -= 1; // mitigate rounding errors
+        uint256 totalFee0 = amount0In.mul(3) / 1000;  // 0.3% fee
+        uint256 totalFee1 = amount1In.mul(3) / 1000;  // 0.3% fee
+        if (totalFee0 > 2) {
+            totalFee0 -= 1;
+            uint256 protocolFeeAmount0 = totalFee0.mul(feePercentage) / 100;
+            if (protocolFeeAmount0 > 0) {
+                _safeTransfer(token0, feeReceiverAddress, protocolFeeAmount0);
+                balance0 = balance0.sub(protocolFeeAmount0);
+            }
         }
-        uint256 fee1 = amount1In.mul(3) / 1000;  // 0.3% fee
-        if(fee1 > 0) {
-            fee1 -= 1; // mitigate rounding errors
-        }
-        if (fee0 > 0) {
-            _safeTransfer(token0, IJoeFactoryFeeReceiver(factory).feeReceiverAddress(), fee0);
-            balance0 = balance0.sub(fee0);
-        }
-        if (fee1 > 0) {
-            _safeTransfer(token1, IJoeFactoryFeeReceiver(factory).feeReceiverAddress(), fee1);
-            balance1 = balance1.sub(fee1);
+        if (totalFee1 > 2) {
+            totalFee1 -= 1;
+            uint256 protocolFeeAmount1 = totalFee1.mul(feePercentage) / 100;
+            if (protocolFeeAmount1 > 0) {
+                _safeTransfer(token1, feeReceiverAddress, protocolFeeAmount1);
+                balance1 = balance1.sub(protocolFeeAmount1);
+            }
         }
 
         // Check constant product invariant
