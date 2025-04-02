@@ -2,18 +2,18 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import  "./JoeLib820.sol";
+//import  "./JoeLib820.sol";
 import {MockERC20} from "./MockERC20.sol";      
-import {IJoeRouter02} from "../src/interfaces/IJoeRouter02.sol";
-import {IJoeFactory} from "../src/interfaces/IJoeFactory.sol";
-import {IJoePair} from "../src/interfaces/IJoePair.sol";
+import {IArenaRouter02} from "../src/interfaces/IArenaRouter02.sol";
+import {IArenaFactory} from "../src/interfaces/IArenaFactory.sol";
+import {IArenaPair} from "../src/interfaces/IArenaPair.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract DexComparisonTest is Test { 
     MockERC20 public mockToken;
-    IJoeRouter02 public router1;
-    IJoeRouter02 public router2;
+    IArenaRouter02 public router1;
+    IArenaRouter02 public router2;
     address public user1;
     address public user2;
     address public WAVAX;
@@ -36,14 +36,14 @@ contract DexComparisonTest is Test {
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
 
-        factory1_address = IJoeRouter02(ROUTER1_ADDRESS).factory();
+        factory1_address = IArenaRouter02(ROUTER1_ADDRESS).factory();
         emit log_named_address("factory1_address", factory1_address);   
         // Deploy mock token
         mockToken = new MockERC20();
 
         // Get router instances
-        router1 = IJoeRouter02(ROUTER1_ADDRESS);
-        router2 = IJoeRouter02(ROUTER2_ADDRESS);
+        router1 = IArenaRouter02(ROUTER1_ADDRESS);
+        router2 = IArenaRouter02(ROUTER2_ADDRESS);
 
         // Get WAVAX address
         WAVAX = router1.WAVAX();
@@ -55,9 +55,9 @@ contract DexComparisonTest is Test {
         // Give users some AVAX
         vm.deal(user1, 100 ether);
         vm.deal(user2, 100 ether);
-        feeToSetter = IJoeFactory(factory1_address).feeToSetter();
+        feeToSetter = IArenaFactory(factory1_address).feeToSetter();
         vm.prank(feeToSetter);
-        IJoeFactory(factory1_address).setProtocolFeeInfo(feeReceiver, 33);
+        IArenaFactory(factory1_address).setProtocolFeeInfo(feeReceiver, 33);
         //addLiquidity(address(router1), user1);
         //addLiquidity(address(router2), user1);
     }   
@@ -69,7 +69,7 @@ contract DexComparisonTest is Test {
         mockToken.approve(_router, LP_AMOUNT);
 
         // Add liquidity
-        IJoeRouter02(_router).addLiquidityAVAX{value: 10 ether}(
+        IArenaRouter02(_router).addLiquidityAVAX{value: 10 ether}(
             address(mockToken),
             LP_AMOUNT,
             0, // Accept any amount of tokens
@@ -88,7 +88,7 @@ contract DexComparisonTest is Test {
         mockToken.approve(_router, _tokenAmount);
 
         // Add liquidity
-        IJoeRouter02(_router).addLiquidityAVAX{value: _avaxAmount}(
+        IArenaRouter02(_router).addLiquidityAVAX{value: _avaxAmount}(
             address(mockToken),
             _tokenAmount,
             0, // Accept any amount of tokens
@@ -119,14 +119,14 @@ contract DexComparisonTest is Test {
     }
 
     function getAvaxAmountForBuy() internal returns (uint256 _AvaxAmount) {
-        address pairAddress =IJoeFactory(factory1_address).getPair(WAVAX,address(mockToken));
-        (uint256 WAVAXReserve, uint256 tokenReserve,) = IJoePair(pairAddress).getReserves();
+        address pairAddress =IArenaFactory(factory1_address).getPair(WAVAX,address(mockToken));
+        (uint256 WAVAXReserve, uint256 tokenReserve,) = IArenaPair(pairAddress).getReserves();
         return vm.randomUint(1, WAVAXReserve * 6 / 10);
     }
 
     function getTokenAmountForSell() internal returns (uint256 _tokenAmount) {
-        address pairAddress =IJoeFactory(factory1_address).getPair(WAVAX,address(mockToken));
-        (uint256 WAVAXReserve, uint256 tokenReserve,) = IJoePair(pairAddress).getReserves();
+        address pairAddress =IArenaFactory(factory1_address).getPair(WAVAX,address(mockToken));
+        (uint256 WAVAXReserve, uint256 tokenReserve,) = IArenaPair(pairAddress).getReserves();
         return vm.randomUint(1, tokenReserve * 6 / 10);
     }
 
@@ -153,7 +153,7 @@ contract DexComparisonTest is Test {
         vm.prank(feeToSetter);
         address receiver = makeAddr("receiver");
         uint256 feePercentage = vm.randomUint(1, 100);
-        IJoeFactory(factory1_address).setProtocolFeeInfo(receiver, feePercentage);
+        IArenaFactory(factory1_address).setProtocolFeeInfo(receiver, feePercentage);
         uint256 totalAvaxVolume = 0;
         uint256 totalTokenVolume = 0;
         _avaxAmount = vm.randomUint(100 ether, 1000 ether);
@@ -187,7 +187,7 @@ contract DexComparisonTest is Test {
     function testSimpleBuy() public {
         vm.prank(feeToSetter);
         address receiver = makeAddr("receiver");
-        IJoeFactory(factory1_address).setProtocolFeeInfo(receiver, 100);
+        IArenaFactory(factory1_address).setProtocolFeeInfo(receiver, 100);
         address _router = address(router1);
         address _user = user1;
         uint256 _avaxAmount = 100 ether;
@@ -203,7 +203,7 @@ contract DexComparisonTest is Test {
     function testSimpleSell() public {
         vm.prank(feeToSetter);
         address receiver = makeAddr("receiver");
-        IJoeFactory(factory1_address).setProtocolFeeInfo(receiver, 27);
+        IArenaFactory(factory1_address).setProtocolFeeInfo(receiver, 27);
         address _router = address(router1);
         address _user = user1;
         uint256 _avaxAmount = 100 ether;
@@ -222,7 +222,7 @@ contract DexComparisonTest is Test {
         path[0] = WAVAX;
         path[1] = address(mockToken);
         vm.startPrank(_user);
-        IJoeRouter02(_router).swapExactAVAXForTokens{value: _avaxAmount}(
+        IArenaRouter02(_router).swapExactAVAXForTokens{value: _avaxAmount}(
             0, // Accept any amount of tokens
             path,
             _user,
@@ -237,7 +237,7 @@ contract DexComparisonTest is Test {
         path[1] = WAVAX;
         vm.startPrank(_user);
         mockToken.approve(address(_router), _tokenAmount);
-        IJoeRouter02(_router).swapExactTokensForAVAX(
+        IArenaRouter02(_router).swapExactTokensForAVAX(
             _tokenAmount,
             0, // Accept any amount of AVAX
             path,
@@ -264,7 +264,7 @@ contract DexComparisonTest is Test {
         // Perform swaps
         vm.startPrank(user1);
         mockToken.approve(address(router1), SWAP_AMOUNT);
-        router1.swapExactTokensForAVAX(
+        IArenaRouter02(router1).swapExactTokensForAVAX(
             SWAP_AMOUNT,
             0, // Accept any amount of AVAX
             path,
@@ -275,7 +275,7 @@ contract DexComparisonTest is Test {
 
         vm.startPrank(user2);
         mockToken.approve(address(router2), SWAP_AMOUNT);
-        router2.swapExactTokensForAVAX(
+        IArenaRouter02(router2).swapExactTokensForAVAX(
             SWAP_AMOUNT,
             0, // Accept any amount of AVAX
             path,
@@ -322,7 +322,7 @@ contract DexComparisonTest is Test {
 
         // Perform swaps
         vm.startPrank(user1);
-        router1.swapExactAVAXForTokens{value: amountIn}(
+        IArenaRouter02(router1).swapExactAVAXForTokens{value: amountIn}(
             0, // Accept any amount of tokens
             path,
             user1,
@@ -331,7 +331,7 @@ contract DexComparisonTest is Test {
         vm.stopPrank();
 
         vm.startPrank(user2);
-        router2.swapExactAVAXForTokens{value: amountIn}(
+        IArenaRouter02(router2).swapExactAVAXForTokens{value: amountIn}(
             0, // Accept any amount of tokens
             path,
             user2,

@@ -2,8 +2,8 @@
 
 pragma solidity >=0.5.0;
 
-interface IJoeCallee {
-    function joeCall(
+interface IArenaCallee {
+    function arenaCall(
         address sender,
         uint256 amount0,
         uint256 amount1,

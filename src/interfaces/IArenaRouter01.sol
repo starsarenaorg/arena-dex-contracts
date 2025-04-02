@@ -2,7 +2,7 @@
 
 pragma solidity >=0.6.2;
 
-interface IJoeRouter01 {
+interface IArenaRouter01 {
     function factory() external pure returns (address);
 
     function WAVAX() external pure returns (address);
