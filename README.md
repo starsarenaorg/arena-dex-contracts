@@ -1,23 +1,75 @@
 ## Arena Dex implementation
-This fork routes the swap fees back to a treasury address.
+This is a white label fork of TraderJoe v1 (Uniswawp v2) with small a modiciation : It routes a portion of swap fees to a treasury address.
 1. Router02 works just as is and calculates the amounts as if there is a 0.3 % fee.
 2. The excess amount normally stay in the Pair contract and go to liquidity providers
-3. Instead of leaving them in the contract, we calculate the amount of fees and send them to a treasury address. 
+3. Instead of leaving them in the contract, we calculate the amount of fees and send a percentage of them to a treasury address. 
 4. The liquidity constant check is modified to handle the sent fees but it still ensures k_new > k_old. 
 
-This means liquidity providers wont get any fees.
+This means liquidity providers wont get the full fees but a portion of them, depending on the fee percentage set by the protocol.
 
+### Modifications: 
+1. `src/ArenaPair.sol`
+The swap function is modified to send a portion of the fees to a treasury address. The treasry address and the fee percentage is queried from the factory contract. You can see the original swap implementation down below for comparison.
 
-The only modification is to the JoePair contract under `src/libraries/JoePair.sol` where the fees are sent instead of being left in the contract. The original can also be found under  `src/libraries/JoePairOriginal.sol` for ease of comparison.
+```
+// Original TraderJoe implementation : Can be found at 
+// https://github.com/traderjoe-xyz/joe-core/blob/main/contracts/traderjoe/JoePair.sol
 
-Deployment : 
+    function swap(
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address to,
+        bytes calldata data
+    ) external lock {
+        require(amount0Out > 0 || amount1Out > 0, "Joe: INSUFFICIENT_OUTPUT_AMOUNT");
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
+        require(amount0Out < _reserve0 && amount1Out < _reserve1, "Joe: INSUFFICIENT_LIQUIDITY");
+
+        uint256 balance0;
+        uint256 balance1;
+        {
+            // scope for _token{0,1}, avoids stack too deep errors
+            address _token0 = token0;
+            address _token1 = token1;
+            require(to != _token0 && to != _token1, "Joe: INVALID_TO");
+            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            if (data.length > 0) IJoeCallee(to).joeCall(msg.sender, amount0Out, amount1Out, data);
+            balance0 = IERC20Joe(_token0).balanceOf(address(this));
+            balance1 = IERC20Joe(_token1).balanceOf(address(this));
+        }
+        uint256 amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
+        uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+        require(amount0In > 0 || amount1In > 0, "Joe: INSUFFICIENT_INPUT_AMOUNT");
+        {
+            // scope for reserve{0,1}Adjusted, avoids stack too deep errors
+            uint256 balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
+            uint256 balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
+            require(balance0Adjusted.mul(balance1Adjusted) >= uint256(_reserve0).mul(_reserve1).mul(1000**2), "Joe: K");
+        }
+
+        _update(balance0, balance1, _reserve0, _reserve1);
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+    }
+
+```
+
+2. `src/ArenaFactory`
+There is a new struct variable and its respective getters and setters for the fee recepient and the fee percentage.
+
+### Deployment : 
 ```
 forge script DexDeployScript  --rpc-url avalanche  -vvvvv --etherscan-api-key avalanche --private-key XX  --broadcast --verify
-````
+```
+
+### Tests :
+```
+forge test --match-contract DexComparison -vvvvv --rpc-url avalanche --etherscan-api-key avalanche --gas-report --match-test testBuySellFuzzWithFees
+```
 
 Avalanche deployments:
 
 
-* JoeFactory deployed at: 0x231DF4D421f1F9e0AAe9bA3634a87EBC87A09c39
-* Bytecode  0x5eae27f407e5d417db3b2c176a2221883934aa8eecf365f8795afb69ee0b23d1
-* JoeRouter02 deployed at: 0x3a6F16E3639e83a085812288D16DE9883E649D1D
+* JoeFactory deployed at: 0x420C7036f56a060eC2760f462977131BB57EdDd6
+* Bytecode  0x4c6c9fe8523383cdfb73c193cd9e295c1c085418820c88b305104ebc0316cd80
+* JoeRouter02 deployed at: 0x3Ab366AaA266Bc945A81bd7b7402218749E8e5e4
