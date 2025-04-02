@@ -219,6 +219,9 @@ contract ArenaPair is ArenaERC20 {
         // Calculate and transfer fees
         uint256 totalFee0 = amount0In.mul(3) / 1000;  // 0.3% fee
         uint256 totalFee1 = amount1In.mul(3) / 1000;  // 0.3% fee
+
+        // We substract 1 from fees to avoid rounding errors, for this to happen, the feeAmount should be greater than 2.
+        // We are fine fine the fees left in the contract.
         if (totalFee0 > 2) {
             totalFee0 -= 1;
             uint256 protocolFeeAmount0 = totalFee0.mul(feePercentage) / 100;
