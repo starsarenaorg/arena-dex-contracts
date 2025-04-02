@@ -58,6 +58,7 @@ contract ArenaFactory is IArenaFactory {
     function setProtocolFeeInfo(address _feeReceiverAddress, uint256 _feePercentage) external override {
         require(_feePercentage <= 100, "Arena: INVALID_FEE_PERCENTAGE");
         require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
+        require(_feeReceiverAddress != address(0), "Arena: INVALID_FEE_RECEIVER_ADDRESS");
         protocolFeeInfo = ProtocolFeeInfo({
             protocolFeeReceiverAddress: _feeReceiverAddress,
             protocolFeePercentage: _feePercentage
