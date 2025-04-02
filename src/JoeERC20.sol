@@ -4,11 +4,11 @@ pragma solidity =0.6.12;
 
 import "./libraries/SafeMath.sol";
 
-contract JoeERC20 {
-    using SafeMathJoe for uint256;
+contract ArenaERC20 {
+    using SafeMathArena for uint256;
 
-    string public constant name = "Joe LP Token";
-    string public constant symbol = "JLP";
+    string public constant name = "Arena LP Token";
+    string public constant symbol = "ALP";
     uint8 public constant decimals = 18;
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
@@ -100,7 +100,7 @@ contract JoeERC20 {
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, "Joe: EXPIRED");
+        require(deadline >= block.timestamp, "Arena: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -109,7 +109,7 @@ contract JoeERC20 {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, "Joe: INVALID_SIGNATURE");
+        require(recoveredAddress != address(0) && recoveredAddress == owner, "Arena: INVALID_SIGNATURE");
         _approve(owner, spender, value);
     }
 }

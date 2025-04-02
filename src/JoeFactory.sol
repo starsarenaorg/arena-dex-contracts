@@ -2,10 +2,10 @@
 
 pragma solidity =0.6.12;
 
-import "./interfaces/IJoeFactory.sol";
-import "./JoePair.sol";
+import "./interfaces/IArenaFactory.sol";
+import "./ArenaPair.sol";
 
-contract JoeFactory is IJoeFactory {
+contract ArenaFactory is IArenaFactory {
     address public override feeTo;
     address public override feeToSetter;
     address public override migrator;
@@ -30,20 +30,20 @@ contract JoeFactory is IJoeFactory {
     }
 
     function pairCodeHash() external pure returns (bytes32) {
-        return keccak256(type(JoePair).creationCode);
+        return keccak256(type(ArenaPair).creationCode);
     }
 
     function createPair(address tokenA, address tokenB) external override returns (address pair) {
-        require(tokenA != tokenB, "Joe: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "Arena: IDENTICAL_ADDRESSES");
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), "Joe: ZERO_ADDRESS");
-        require(getPair[token0][token1] == address(0), "Joe: PAIR_EXISTS"); // single check is sufficient
-        bytes memory bytecode = type(JoePair).creationCode;
+        require(token0 != address(0), "Arena: ZERO_ADDRESS");
+        require(getPair[token0][token1] == address(0), "Arena: PAIR_EXISTS"); // single check is sufficient
+        bytes memory bytecode = type(ArenaPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        JoePair(pair).initialize(token0, token1);
+        ArenaPair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
@@ -51,13 +51,13 @@ contract JoeFactory is IJoeFactory {
     }
 
     function setFeeTo(address _feeTo) external override {
-        require(msg.sender == feeToSetter, "Joe: FORBIDDEN");
+        require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
         feeTo = _feeTo;
     }
 
     function setProtocolFeeInfo(address _feeReceiverAddress, uint256 _feePercentage) external override {
-        require(_feePercentage <= 100, "Joe: INVALID_FEE_BASIS_POINTS");
-        require(msg.sender == feeToSetter, "Joe: FORBIDDEN");
+        require(_feePercentage <= 100, "Arena: INVALID_FEE_PERCENTAGE");
+        require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
         protocolFeeInfo = ProtocolFeeInfo({
             protocolFeeReceiverAddress: _feeReceiverAddress,
             protocolFeePercentage: _feePercentage
@@ -70,12 +70,12 @@ contract JoeFactory is IJoeFactory {
 
 
     function setMigrator(address _migrator) external override {
-        require(msg.sender == feeToSetter, "Joe: FORBIDDEN");
+        require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
         migrator = _migrator;
     }
 
     function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, "Joe: FORBIDDEN");
+        require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
         feeToSetter = _feeToSetter;
     }
 }
