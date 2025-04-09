@@ -3,7 +3,7 @@ This is a white label fork of TraderJoe v1 (Uniswawp v2) with small a modiciatio
 1. Router02 works just as is and calculates the amounts as if there is a 0.3 % fee.
 2. The excess amount normally stay in the Pair contract and go to liquidity providers
 3. Instead of leaving them in the contract, we calculate the amount of fees and send a percentage of them to a treasury address. 
-4. The liquidity constant check is modified to handle the sent fees but it still ensures k_new > k_old. 
+4. The liquidity constant check is not modified and accounts for the correct amount of fees. 
 
 This means liquidity providers wont get the full fees but a portion of them, depending on the fee percentage set by the protocol.
 
@@ -70,6 +70,6 @@ forge test --match-contract DexComparison -vvvvv --rpc-url avalanche --etherscan
 Avalanche deployments:
 
 
-* JoeFactory deployed at: 0x420C7036f56a060eC2760f462977131BB57EdDd6
-* Bytecode  0x4c6c9fe8523383cdfb73c193cd9e295c1c085418820c88b305104ebc0316cd80
-* JoeRouter02 deployed at: 0x3Ab366AaA266Bc945A81bd7b7402218749E8e5e4
+* ArenaFactory deployed at: 0x1fDF56D7F502DA9722de1085160cF3b3C1b6FB96
+* Bytecode  0x99b528e3c2a22a7928be13515cdf8fb5e787e483233ec6ec75592a51c01a67d4
+* JoeRouter02 deployed at: 0x84e6964314188f2A1eb58Aa2B4c454CC8AdeA716
