@@ -214,36 +214,26 @@ contract ArenaPair is ArenaERC20 {
         uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, "Arena: INSUFFICIENT_INPUT_AMOUNT");
         {
+            uint256 balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
+            uint256 balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
 
-        (address feeReceiverAddress, uint256 feePercentage) = IArenaFactory(factory).getProtocolFeeInfo();
-        // Calculate and transfer fees
-        uint256 totalFee0 = amount0In.mul(3) / 1000;  // 0.3% fee
-        uint256 totalFee1 = amount1In.mul(3) / 1000;  // 0.3% fee
+            (address feeReceiverAddress, uint256 feePercentage) = IArenaFactory(factory).getProtocolFeeInfo();
+            // Calculate and transfer fees - might truncate but will never be larger than 0.3%
+            uint256 totalFee0 = amount0In.mul(3).mul(feePercentage) / 100 / 1000;  // 0.3 % fee max
+            uint256 totalFee1 = amount1In.mul(3).mul(feePercentage) / 100 / 1000;  // 0.3 % fee max
 
-        // We substract 1 from fees to avoid rounding errors, for this to happen, the feeAmount should be greater than 2.
-        // We are fine fine the fees left in the contract.
-        if (totalFee0 > 2) {
-            totalFee0 -= 1;
-            uint256 protocolFeeAmount0 = totalFee0.mul(feePercentage) / 100;
-            if (protocolFeeAmount0 > 0) {
-                _safeTransfer(token0, feeReceiverAddress, protocolFeeAmount0);
-                balance0 = balance0.sub(protocolFeeAmount0);
+
+            if (totalFee0 > 0) {
+                _safeTransfer(token0, feeReceiverAddress, totalFee0);
+                balance0 = balance0.sub(totalFee0);
             }
-        }
-        if (totalFee1 > 2) {
-            totalFee1 -= 1;
-            uint256 protocolFeeAmount1 = totalFee1.mul(feePercentage) / 100;
-            if (protocolFeeAmount1 > 0) {
-                _safeTransfer(token1, feeReceiverAddress, protocolFeeAmount1);
-                balance1 = balance1.sub(protocolFeeAmount1);
+            if (totalFee1 > 0){
+                _safeTransfer(token1, feeReceiverAddress, totalFee1);
+                balance1 = balance1.sub(totalFee1);
             }
-        }
 
-        // Check constant product invariant
-        require(
-            balance0.mul(balance1) >= uint256(_reserve0).mul(_reserve1),
-            "Arena: K"
-        );
+            // Check constant product invariant
+            require(balance0Adjusted.mul(balance1Adjusted) >= uint256(_reserve0).mul(_reserve1).mul(1000**2), "Arena: K");
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
