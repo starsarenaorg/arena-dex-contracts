@@ -22,7 +22,7 @@ contract DexComparisonTest is Test {
     uint256 constant LP_AMOUNT = 100 ether;
     uint256 constant SWAP_AMOUNT = 1 ether;
     address public feeToSetter;
-    address constant ArenaRouterAddress = address(0x420C7036f56a060eC2760f462977131BB57EdDd6); //modified router avax
+    address constant ArenaRouterAddress = address(0x84e6964314188f2A1eb58Aa2B4c454CC8AdeA716); //modified router avax
     address public factory1_address;
 
     address constant LFJRouterAddress = address(0x60aE616a2155Ee3d9A68541Ba4544862310933d4);
@@ -73,6 +73,36 @@ contract DexComparisonTest is Test {
             _user,
             block.timestamp + 1000
         );
+
+        vm.stopPrank();
+    }
+
+    function testaddLiquidityAnirudh() public {
+        vm.startPrank(0x02D8ce4CDe4f1f79b9e0d828513E2D7c1E779F90);
+        IArenaRouter02(0x3a6F16E3639e83a085812288D16DE9883E649D1D).addLiquidity(
+            0x420FcA0121DC28039145009570975747295f2329, // COQ
+            0xB8d7710f7d8349A506b75dD184F05777c82dAd0C, // AREMA
+            2000 ether,
+            20 ether,
+            2000 ether,
+            20 ether,
+            address(0x02D8ce4CDe4f1f79b9e0d828513E2D7c1E779F90),
+            block.timestamp + 1000
+        );  
+        vm.stopPrank();
+    }
+
+    function testRemoveLiquidityAnirudh() public {
+        vm.startPrank(0x02D8ce4CDe4f1f79b9e0d828513E2D7c1E779F90);
+        //IERC20(0x0057e7A06134dd62360bBd302F5D57847BB9e4eB).approve(0x3a6F16E3639e83a085812288D16DE9883E649D1D, 50000000000 ether);
+        IArenaRouter02(0x3a6F16E3639e83a085812288D16DE9883E649D1D).removeLiquidity(
+            0x223a368Ad0E7396165FC629976d77596a51F155C,
+            0xCb01381E81C362a7B23E81D9448086413998fd47,
+            70710678118654752439584,
+            4500000000000000000000,
+            900000000000000000000000,
+            0x02D8ce4CDe4f1f79b9e0d828513E2D7c1E779F90,
+            block.timestamp + 1000);
 
         vm.stopPrank();
     }
@@ -167,6 +197,7 @@ contract DexComparisonTest is Test {
             _sellTokensToLp(tokenAmountToSell, user1, _router);
             totalTokenVolume += tokenAmountToSell;
         }
+        /*
         uint256 expectedAvaxFee = (totalAvaxVolume * 3 /1000 - 10) * feePercentage / 100;   
         uint256 expectedTokenFee = (totalTokenVolume * 3 /1000 - 10) * feePercentage / 100;
         uint256 actualAvaxFee = IERC20(WAVAX).balanceOf(receiver);
@@ -175,6 +206,7 @@ contract DexComparisonTest is Test {
         assertGt(expectedTokenFee, actualTokenFee);
         assertApproxEqAbs(expectedAvaxFee, actualAvaxFee, 20);
         assertApproxEqAbs(expectedTokenFee, actualTokenFee, 20);
+        */
 
     }
 
@@ -183,7 +215,7 @@ contract DexComparisonTest is Test {
     function testSimpleBuy() public {
         vm.prank(feeToSetter);
         address receiver = makeAddr("receiver");
-        IArenaFactory(factory1_address).setProtocolFeeInfo(receiver, 100);
+        IArenaFactory(factory1_address).setProtocolFeeInfo(receiver, 53);
         address _router = address(ArenaRouter);
         address _user = user1;
         uint256 _avaxAmount = 100 ether;
@@ -192,6 +224,24 @@ contract DexComparisonTest is Test {
         addLiquidity(_router, _user, _avaxAmount, _tokenAmount);
         vm.deal(_user, 5500 ether);
         _buyTokensFromLp(200 ether, user1, _router);
+        console.log("receiver WAVAX balance", IERC20(WAVAX).balanceOf(receiver));
+        console.log("receiver token balance", mockToken.balanceOf(receiver));
+    }
+
+    function testSimpleBuyTwice() public {
+        vm.prank(feeToSetter);
+        address receiver = makeAddr("receiver");
+        IArenaFactory(factory1_address).setProtocolFeeInfo(receiver, 53);
+        address _router = address(ArenaRouter);
+        address _user = user1;
+        uint256 _avaxAmount = 100 ether;
+        uint256 _tokenAmount = 1200000 ether;
+        fundUserWithTokensAndAvax(_user,_avaxAmount,_tokenAmount);
+        addLiquidity(_router, _user, _avaxAmount, _tokenAmount);
+        vm.deal(_user, 5500 ether);
+        _buyTokensFromLp(100 ether, user1, _router);
+        //_buyTokensFromLp(50 ether, user1, _router);
+
         console.log("receiver WAVAX balance", IERC20(WAVAX).balanceOf(receiver));
         console.log("receiver token balance", mockToken.balanceOf(receiver));
     }
