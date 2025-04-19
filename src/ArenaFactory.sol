@@ -13,6 +13,7 @@ contract ArenaFactory is IArenaFactory {
 
     struct ProtocolFeeInfo {
         address protocolFeeReceiverAddress;
+        // this value represents the percentage of the standard 0.3% fee is taken by the protocol. 10000 = 100%
         uint96 protocolFeePercentageInBps;
     }
 
