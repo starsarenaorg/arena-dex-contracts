@@ -217,10 +217,10 @@ contract ArenaPair is ArenaERC20 {
             uint256 balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
             uint256 balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
 
-            (address feeReceiverAddress, uint96 feePercentage) = IArenaFactory(factory).getProtocolFeeInfo();
+            (address feeReceiverAddress, uint96 feePercentageInBps) = IArenaFactory(factory).getProtocolFeeInfo();
             // Calculate and transfer fees - might truncate but will never be larger than 0.3%
-            uint256 totalFee0 = amount0In.mul(3).mul(feePercentage) / 100 / 1000;  // 0.3 % fee max
-            uint256 totalFee1 = amount1In.mul(3).mul(feePercentage) / 100 / 1000;  // 0.3 % fee max
+            uint256 totalFee0 = amount0In.mul(3).mul(feePercentageInBps) / 10000 / 1000;  // 0.3 % fee max
+            uint256 totalFee1 = amount1In.mul(3).mul(feePercentageInBps) / 10000 / 1000;  // 0.3 % fee max
 
 
             if (totalFee0 > 0) {

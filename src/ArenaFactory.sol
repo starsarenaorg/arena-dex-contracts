@@ -13,7 +13,7 @@ contract ArenaFactory is IArenaFactory {
 
     struct ProtocolFeeInfo {
         address protocolFeeReceiverAddress;
-        uint96 protocolFeePercentage;
+        uint96 protocolFeePercentageInBps;
     }
 
     mapping(address => mapping(address => address)) public override getPair;
@@ -55,18 +55,18 @@ contract ArenaFactory is IArenaFactory {
         feeTo = _feeTo;
     }
 
-    function setProtocolFeeInfo(address _feeReceiverAddress, uint96 _feePercentage) external override {
-        require(_feePercentage <= 100, "Arena: INVALID_FEE_PERCENTAGE");
+    function setProtocolFeeInfo(address _feeReceiverAddress, uint96 _feePercentageInBps) external override {
+        require(_feePercentageInBps <= 10000, "Arena: INVALID_FEE_PERCENTAGE");
         require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
         require(_feeReceiverAddress != address(0), "Arena: INVALID_FEE_RECEIVER_ADDRESS");
         protocolFeeInfo = ProtocolFeeInfo({
             protocolFeeReceiverAddress: _feeReceiverAddress,
-            protocolFeePercentage: _feePercentage
+            protocolFeePercentageInBps: _feePercentageInBps
         });
     }
 
     function getProtocolFeeInfo() external view override returns (address, uint96) {
-        return (protocolFeeInfo.protocolFeeReceiverAddress, protocolFeeInfo.protocolFeePercentage);
+        return (protocolFeeInfo.protocolFeeReceiverAddress, protocolFeeInfo.protocolFeePercentageInBps);
     }
 
 
