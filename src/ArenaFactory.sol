@@ -20,6 +20,7 @@ contract ArenaFactory is IArenaFactory {
     address[] public override allPairs;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
+    event ProtocolFeeInfoSet(address indexed feeReceiverAddress, uint96 feePercentageInBps, uint96 previousFeePercentageInBps);
 
     constructor(address _feeToSetter) public {
         feeToSetter = _feeToSetter;
@@ -59,10 +60,12 @@ contract ArenaFactory is IArenaFactory {
         require(_feePercentageInBps <= 10000, "Arena: INVALID_FEE_PERCENTAGE");
         require(msg.sender == feeToSetter, "Arena: FORBIDDEN");
         require(_feeReceiverAddress != address(0), "Arena: INVALID_FEE_RECEIVER_ADDRESS");
+        uint96 previousFeePercentageInBps = protocolFeeInfo.protocolFeePercentageInBps;
         protocolFeeInfo = ProtocolFeeInfo({
             protocolFeeReceiverAddress: _feeReceiverAddress,
             protocolFeePercentageInBps: _feePercentageInBps
         });
+        emit ProtocolFeeInfoSet(_feeReceiverAddress, _feePercentageInBps, previousFeePercentageInBps);
     }
 
     function getProtocolFeeInfo() external view override returns (address, uint96) {
