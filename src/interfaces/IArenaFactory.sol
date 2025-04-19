@@ -25,7 +25,7 @@ interface IArenaFactory {
 
     function setMigrator(address) external;
 
-    function getProtocolFeeInfo() external view returns (address, uint256);
+    function getProtocolFeeInfo() external view returns (address, uint96);
 
-    function setProtocolFeeInfo(address, uint256) external;
+    function setProtocolFeeInfo(address, uint96) external;
 }
