@@ -225,11 +225,11 @@ contract ArenaPair is ArenaERC20 {
 
             if (totalFee0 > 0) {
                 _safeTransfer(token0, feeReceiverAddress, totalFee0);
-                balance0 = balance0.sub(totalFee0);
+                balance0 = IERC20Arena(token0).balanceOf(address(this));
             }
             if (totalFee1 > 0){
                 _safeTransfer(token1, feeReceiverAddress, totalFee1);
-                balance1 = balance1.sub(totalFee1);
+                balance1 = IERC20Arena(token1).balanceOf(address(this));
             }
 
             // Check constant product invariant
