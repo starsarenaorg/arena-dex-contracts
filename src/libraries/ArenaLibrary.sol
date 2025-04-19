@@ -30,7 +30,7 @@ library ArenaLibrary {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"99b528e3c2a22a7928be13515cdf8fb5e787e483233ec6ec75592a51c01a67d4" // init code avax
+                        hex"f0a0ff5b3bb3aa21c7940a740dd0595ea9b25003f33389cae35ef72e5ce620d1" // init code avax
                     )
                 )
             )
