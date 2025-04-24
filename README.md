@@ -70,6 +70,6 @@ forge test --match-contract DexComparison -vvvvv --rpc-url avalanche --etherscan
 Avalanche deployments:
 
 
-* ArenaFactory deployed at: 0x1fDF56D7F502DA9722de1085160cF3b3C1b6FB96
-* Bytecode  0x99b528e3c2a22a7928be13515cdf8fb5e787e483233ec6ec75592a51c01a67d4
-* JoeRouter02 deployed at: 0x84e6964314188f2A1eb58Aa2B4c454CC8AdeA716
+* ArenaFactory deployed at: 0xF16784dcAf838a3e16bEF7711a62D12413c39BD1
+* Bytecode  0xe5982ea9aa099c260fbe1f626ddf304ecab74f9d85fb8c5277156486875ab7fe
+* JoeRouter02 deployed at: 0xF56D524D651B90E4B84dc2FffD83079698b9066E
